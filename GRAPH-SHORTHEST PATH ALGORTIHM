@@ -1,0 +1,80 @@
+import java.util.*;
+
+class Graph {
+    private Map<String, Map<String, Integer>> adjacencyList;
+
+    public Graph() {
+        this.adjacencyList = new HashMap<>();
+    }
+
+    public void addEdge(String source, String destination, int weight) {
+        adjacencyList.computeIfAbsent(source, k -> new HashMap<>()).put(destination, weight);
+        adjacencyList.computeIfAbsent(destination, k -> new HashMap<>()).put(source, weight); // Uncomment this line for undirected graph
+    }
+
+    public Map<String, Integer> getNeighbors(String node) {
+        return adjacencyList.getOrDefault(node, Collections.emptyMap());
+    }
+}
+
+class Dijkstra {
+    public static Map<String, Integer> shortestPath(Graph graph, String startNode) {
+        Map<String, Integer> distances = new HashMap<>();
+        PriorityQueue<Node> priorityQueue = new PriorityQueue<>(Comparator.comparingInt(distances::get));
+
+        distances.put(startNode, 0);
+        priorityQueue.add(new Node(startNode, 0));
+
+        while (!priorityQueue.isEmpty()) {
+            String current = priorityQueue.poll().getNode();
+
+            for (Map.Entry<String, Integer> neighborEntry : graph.getNeighbors(current).entrySet()) {
+                String neighbor = neighborEntry.getKey();
+                int newDistance = distances.get(current) + neighborEntry.getValue();
+
+                if (!distances.containsKey(neighbor) || newDistance < distances.get(neighbor)) {
+                    distances.put(neighbor, newDistance);
+                    priorityQueue.add(new Node(neighbor, newDistance));
+                }
+            }
+        }
+
+        return distances;
+    }
+
+    static class Node {
+        private String node;
+        private int distance;
+
+        public Node(String node, int distance) {
+            this.node = node;
+            this.distance = distance;
+        }
+
+        public String getNode() {
+            return node;
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Graph graph = new Graph();
+
+        graph.addEdge("A", "B", 4);
+        graph.addEdge("A", "C", 2);
+        graph.addEdge("B", "C", 5);
+        graph.addEdge("B", "D", 10);
+        graph.addEdge("C", "D", 3);
+        graph.addEdge("D", "E", 7);
+        graph.addEdge("E", "A", 8);
+
+        String startNode = "A";
+        Map<String, Integer> shortestDistances = Dijkstra.shortestPath(graph, startNode);
+
+        System.out.println("Shortest distances from node " + startNode + ":");
+        for (Map.Entry<String, Integer> entry : shortestDistances.entrySet()) {
+            System.out.println("To " + entry.getKey() + ": " + entry.getValue());
+        }
+    }
+}
